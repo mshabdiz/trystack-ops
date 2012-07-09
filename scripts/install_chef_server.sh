@@ -23,7 +23,7 @@ apt_get install opscode-keyring --force-yes
  
 # Install Chef server
 apt_get upgrade --force-yes 
-apt_get DEBIAN_FRONTEND=noninteractive install chef chef-server --force-yes 
+apt_get install chef chef-server --force-yes 
  
 # Copy the PEM file for Chef into the web Chef and local Chef cache
 mkdir -p ~/.chef 
