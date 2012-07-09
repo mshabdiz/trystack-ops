@@ -3,6 +3,11 @@
 # Installs all the packages that a TryStack management node requires
 # and sets up the basic DHCP server, netboot install server and
 # Chef Server
+SCRIPTS_DIR=$(cd $(dirname "$0") && pwd)
+ROOT_DIR=$(cd $SCRIPTS_DIR/../ && pwd)
+VAR_DIR=$(cd $ROOT_DIR/var && pwd)
+ETC_DIR=$(cd $ROOT_DIR/etc && pwd)
+PRECISE_DOWNLOAD_URI="http://www.ubuntu.com/start-download?distro=server&bits=64&release=precise"
 
 if [ ! $USER == "root" ]; then
   echo "Please run this script as root. Exiting."
@@ -18,14 +23,14 @@ if [ -z $ZONE_ID ]; then
   ZONE_ID=$1
 fi
 
+NODE_INFO_FILE=$VAR_DIR/zones/${ZONE_ID,,}.info
+if [ ! -f $NODE_INFO_FILE ]; then
+  echo "Could not locate node info file for zone $ZONE_ID. Expected $NODE_INFO_FILE."
+  exit 1
+fi
+
 # Exit on error to stop unexpected errors
 set -o errexit
-
-SCRIPTS_DIR=$(cd $(dirname "$0") && pwd)
-ROOT_DIR=$(cd $SCRIPTS_DIR/../ && pwd)
-VAR_DIR=$(cd $ROOT_DIR/var && pwd)
-ETC_DIR=$(cd $ROOT_DIR/etc && pwd)
-PRECISE_DOWNLOAD_URI="http://www.ubuntu.com/start-download?distro=server&bits=64&release=precise"
 
 # Create the images download and mount directories
 IMAGES_DIR=$ROOT_DIR/images
@@ -79,12 +84,6 @@ umount $PRECISE_MNT_PATH
 # that we use Chef roles to further classify what packages
 # and other things are set up on individual service nodes
 cobbler profile add --name=service_node --distro=precise-x86_64
-
-# In bash ${VAR,,} will lowercase VAR
-NODE_INFO_FILE=$VAR_DIR/zones/${ZONE_ID,,}.info
-if [ ! -f $NODE_INFO_FILE ]; then
-  die "Could not locate node info file for zone $ZONE_ID. Expected $NODE_INFO_FILE."
-fi
 
 # Create a record in Cobbler for each service node in the zone
 OIFS=$IFS
